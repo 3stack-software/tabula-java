@@ -11,7 +11,7 @@ public class Rectangle extends Rectangle2D.Float {
 
 	/**
 	 * Ill-defined comparator, from when Rectangle was Comparable.
-	 * 
+	 *
 	 * @see <a href="https://github.com/tabulapdf/tabula-java/issues/116">PR 116</a>
 	 * @deprecated with no replacement
 	 */
@@ -19,17 +19,24 @@ public class Rectangle extends Rectangle2D.Float {
 	public static final Comparator<Rectangle> ILL_DEFINED_ORDER = new Comparator<Rectangle>() {
 		@Override public int compare(Rectangle o1, Rectangle o2) {
 			if (o1.equals(o2)) return 0;
-			if (o1.verticalOverlap(o2) > VERTICAL_COMPARISON_THRESHOLD) {
-				return o1.isLtrDominant() == -1 && o2.isLtrDominant() == -1
-				     ? - java.lang.Double.compare(o1.getX(), o2.getX())
-				     : java.lang.Double.compare(o1.getX(), o2.getX());
-			} else {
-				return java.lang.Float.compare(o1.getBottom(), o2.getBottom());
+			float overlap = o1.verticalOverlap(o2);
+			float requiredOverlap = Math.min(o1.height, o2.height) * VERTICAL_COMPARISON_THRESHOLD;
+			if (overlap < requiredOverlap) {
+				int retval = java.lang.Float.compare(o1.getBottom(), o2.getBottom());
+				if (retval != 0) {
+					retval = java.lang.Float.compare(o1.getTop(), o2.getTop());
+				}
+				if (retval != 0) {
+					return retval;
+				}
 			}
+			return o1.isLtrDominant() == -1 && o2.isLtrDominant() == -1
+				 ? - java.lang.Double.compare(o1.getX(), o2.getX())
+				 : java.lang.Double.compare(o1.getX(), o2.getX());
 		}
 	};
-	
-	protected static final float VERTICAL_COMPARISON_THRESHOLD = 0.4f;
+
+	protected static final float VERTICAL_COMPARISON_THRESHOLD = 0.5f;
 
 	public Rectangle() {
 		super();
